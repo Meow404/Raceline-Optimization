@@ -420,6 +420,35 @@ else:
                          drag_coeff=pars["veh_params"]["dragcoeff"],
                          m_veh=pars["veh_params"]["mass"])
 
+#     # Apply a lateral-acceleration speed cap so that mincurv (and other non-mintime runs)
+#     # slow down in turns. The cap uses pars["optim_opts"]["ay_safe"] if available,
+#     # otherwise falls back to 2.5 m/s^2.
+#     try:
+#         ay_cap = pars["optim_opts"].get("ay_safe", 2.5)
+#     except Exception:
+#         ay_cap = 2.5
+
+#     # avoid division by zero for straight segments
+#     with np.errstate(divide='ignore', invalid='ignore'):
+#         v_cap = np.sqrt(np.where(np.abs(kappa_opt) > 1e-8, ay_cap / np.abs(kappa_opt), np.inf))
+
+#     # clip the computed velocity profile to the lateral-acceleration cap
+#     vx_profile_opt = np.minimum(vx_profile_opt, v_cap)
+
+# from scipy.signal import savgol_filter
+
+# filt_window = pars["vel_calc_opts"].get("vel_profile_conv_filt_window", None)
+# if filt_window is not None and filt_window > 2:
+#     # window length must be odd and >= 3
+#     w = int(filt_window) if int(filt_window) % 2 == 1 else int(filt_window) + 1
+#     # choose polyorder < w (typical 2 or 3)
+#     polyorder = 2 if w > 2 else 1
+#     vx_smoothed = savgol_filter(vx_profile_opt, window_length=w, polyorder=polyorder, mode='interp')
+#     if 'v_cap' in locals():
+#         vx_smoothed = np.minimum(vx_smoothed, v_cap)
+#     vx_profile_opt = vx_smoothed
+
+
 # calculate longitudinal acceleration profile
 vx_profile_opt_cl = np.append(vx_profile_opt, vx_profile_opt[0])
 ax_profile_opt = tph.calc_ax_profile.calc_ax_profile(vx_profile=vx_profile_opt_cl,
