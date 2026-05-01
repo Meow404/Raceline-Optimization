@@ -32,6 +32,14 @@ parser = argparse.ArgumentParser(description='Generate optimal trajectory for F1
 parser.add_argument('--map_name', type=str, default='e7_floor5_square', help='Name of the map (default: e7_floor5_square)')
 parser.add_argument('--map_path', type=str, default='', help='Path to the map centerline (should be a .csv), defaults to inputs/tracks/<map_name>.csv')
 parser.add_argument('--export_path', type=str, default='', help='Path to copy from the filepath in the /outputs')
+parser.add_argument('--no_auto_smooth', action='store_true', help='Disable auto-increasing spline smoothing when normals cross')
+parser.add_argument('--auto_smooth_max_iters', type=int, default=8, help='Max prep retries when normals cross (default: 8)')
+parser.add_argument('--auto_smooth_s_reg_mult', type=float, default=2.0, help='Multiplier on s_reg per retry (default: 2.0)')
+parser.add_argument('--plot_normals_on_fail', action='store_true', help='Show plot if normals-crossing error persists')
+parser.add_argument('--shrink_width_on_crossing', action='store_true', help='If normals still cross, shrink track widths (narrows corridor)')
+parser.add_argument('--shrink_width_max_iters', type=int, default=25, help='Max width-shrink iterations (default: 25)')
+parser.add_argument('--shrink_width_mult', type=float, default=0.97, help='Width multiplier per shrink iteration (default: 0.97)')
+parser.add_argument('--shrink_width_min_total', type=float, default=None, help='Optional minimum total width to enforce while shrinking')
 
 args = parser.parse_args()
 
@@ -255,7 +263,15 @@ reftrack_interp, normvec_normalized_interp, a_interp, coeffs_x_interp, coeffs_y_
                                                 reg_smooth_opts=pars["reg_smooth_opts"],
                                                 stepsize_opts=pars["stepsize_opts"],
                                                 debug=debug,
-                                                min_width=imp_opts["min_track_width"])
+                                                min_width=imp_opts["min_track_width"],
+                                                auto_increase_smoothing=not args.no_auto_smooth,
+                                                auto_smooth_max_iters=args.auto_smooth_max_iters,
+                                                auto_smooth_s_reg_mult=args.auto_smooth_s_reg_mult,
+                                                auto_shrink_width_on_crossing=args.shrink_width_on_crossing,
+                                                auto_shrink_width_max_iters=args.shrink_width_max_iters,
+                                                auto_shrink_width_mult=args.shrink_width_mult,
+                                                auto_shrink_width_min_total=args.shrink_width_min_total,
+                                                plot_on_fail=args.plot_normals_on_fail)
 
 # ----------------------------------------------------------------------------------------------------------------------
 # CALL OPTIMIZATION ----------------------------------------------------------------------------------------------------
